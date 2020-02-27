@@ -7,12 +7,10 @@ export const Form = styled.form`
 
   input {
     flex: 1;
-    border: 1px solid ${props => (props.error ? '#ff6b6b' : '#eee')};
+    border: 1px solid #eee;
     padding: 10px 15px;
     border-radius: 4px;
     font-size: 16px;
-
-    transition: border 0.25s ease-out;
   }
 `;
 
@@ -45,33 +43,31 @@ export const SubmitButton = styled.button.attrs(props => ({
     opacity: 0.6;
   }
 
-  ${props =>
-    props.loading &&
-    css`
-      svg {
-        animation: ${rotate} 2s linear infinite;
-      }
-    `}
+  ${props => props.loading && css`
+    svg {
+      animation: ${rotate} 2s linear infinite;
+    }
+  `}
 `;
 
 export const List = styled.ul`
-  list-style: none;
-  margin-top: 30px;
+    list-style: none;
+    margin-top: 30px;
 
-  li {
-    padding: 15px 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    li {
+      padding: 15px 0;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
 
     & + li {
       border-top: 1px solid #eee;
     }
-
+    
     a {
       color: #7159c1;
       text-decoration: none;
     }
-  }
 `;
