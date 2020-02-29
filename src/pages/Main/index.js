@@ -43,6 +43,14 @@ export default class Main extends Component {
     const { newRepo, repositories } = this.state;
 
     try {
+      if (
+        repositories.some(
+          repository => repository.name.toLowerCase() === newRepo.toLowerCase()
+        )
+      ) {
+        throw new Error('Repositório já foi informado anteriormente.');
+      }
+
       const response = await api.get(`/repos/${newRepo}`);
 
       const data = {
