@@ -12,18 +12,19 @@ export default class Main extends Component {
     newRepo: '',
     repositories: [],
     loading: false,
-  }
+    errorInput: false,
+  };
 
   componentDidMount() {
     const repositories = localStorage.getItem('repositories');
 
     if (repositories) {
-      this.setState({repositories: JSON.parse(repositories)});
+      this.setState({ repositories: JSON.parse(repositories) });
     }
   }
 
   componentDidUpdate(_, prevState) {
-    const { repositories }  = this.state;
+    const { repositories } = this.state;
 
     if (prevState.repositories !== repositories) {
       localStorage.setItem('repositories', JSON.stringify(repositories));
@@ -38,23 +39,33 @@ export default class Main extends Component {
     e.preventDefault();
 
     this.setState({ loading: true });
+
     const { newRepo, repositories } = this.state;
 
-    const response = await api.get(`/repos/${newRepo}`);
+    try {
+      const response = await api.get(`/repos/${newRepo}`);
 
-    const data = {
-      name: response.data.full_name,
-    };
+      const data = {
+        name: response.data.full_name,
+      };
 
-    this.setState({
-      repositories: [...repositories, data],
-      newRepo: '',
-      loading: false,
-    });
+      this.setState({
+        repositories: [...repositories, data],
+        newRepo: '',
+        loading: false,
+        errorInput: false,
+      });
+    } catch (error) {
+      this.setState({
+        newRepo: '',
+        loading: false,
+        errorInput: true,
+      });
+    }
   };
 
   render() {
-    const { newRepo, repositories, loading } = this.state;
+    const { newRepo, repositories, loading, errorInput } = this.state;
 
     return (
       <Container>
@@ -63,7 +74,7 @@ export default class Main extends Component {
           Repositórios
         </h1>
 
-        <Form onSubmit={this.handleSubmit}>
+        <Form onSubmit={this.handleSubmit} errorOnInput={errorInput ? 1 : 0}>
           <input
             type="text"
             placeholder="Adicionar repositório"
@@ -72,21 +83,24 @@ export default class Main extends Component {
           />
 
           <SubmitButton loading={loading ? 1 : 0}>
-          { loading 
-             ? (<FaSpinner color="#FFF" size={14} /> ) 
-             : (<FaPlus color="#FFF" size={14} />)}
+            {loading ? (
+              <FaSpinner color="#FFF" size={14} />
+            ) : (
+              <FaPlus color="#FFF" size={14} />
+            )}
           </SubmitButton>
         </Form>
-        
-        <List>
-            {repositories.map( repository =>  (
-              <li key={repository.name}>
-                <span>{repository.name}</span>
-                <Link to={`/repository/${encodeURIComponent(repository.name)}`}>Detalhes</Link>
-              </li>
-            ))}
-        </List>
 
+        <List>
+          {repositories.map(repository => (
+            <li key={repository.name}>
+              <span>{repository.name}</span>
+              <Link to={`/repository/${encodeURIComponent(repository.name)}`}>
+                Detalhes
+              </Link>
+            </li>
+          ))}
+        </List>
       </Container>
     );
   }
