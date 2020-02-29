@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 import api from '../../services/api';
 import Container from '../../components/Container';
-import { Loading, Owner, IssueList } from './styles';
+import { Loading, Owner, FilterIssue, IssueList } from './styles';
 
 export default class Repository extends Component {
   static propTypes = {
@@ -18,11 +18,13 @@ export default class Repository extends Component {
   state = {
     repository: {},
     issues: [],
+    filterIssue: 'open',
     loading: true,
   };
 
   async componentDidMount() {
     const { match } = this.props;
+    const { filterIssue } = this.state;
 
     const repoName = decodeURIComponent(match.params.repository);
 
@@ -30,7 +32,7 @@ export default class Repository extends Component {
       api.get(`/repos/${repoName}`),
       api.get(`/repos/${repoName}/issues`, {
         params: {
-          state: 'open',
+          state: filterIssue,
           per_page: 5,
         },
       }),
@@ -42,6 +44,23 @@ export default class Repository extends Component {
       loading: false,
     });
   }
+
+  async componentDidUpdate(_, prevState) {
+    const { match } = this.props;
+    const { filterIssue } = this.state;
+    const repoName = decodeURIComponent(match.params.repository);
+
+    if (prevState.filterIssue !== filterIssue) {
+      await api.get(`/repos/${repoName}/issues`, {
+        params: {
+          state: filterIssue,
+          per_page: 5,
+        },
+      });
+    }
+  }
+
+  handleSelectChange = e => this.setState({ filterIssue: e.target.value });
 
   render() {
     const { repository, issues, loading } = this.state;
@@ -58,6 +77,13 @@ export default class Repository extends Component {
           <h1>{repository.name}</h1>
           <p>{repository.description}</p>
         </Owner>
+
+        <span>Issue situation:</span>
+        <FilterIssue onChange={this.handleSelectChange}>
+          <option value="all">All</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </FilterIssue>
 
         <IssueList>
           {issues.map(issue => (
