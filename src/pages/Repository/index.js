@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 import api from '../../services/api';
 import Container from '../../components/Container';
-import { Loading, Owner, FilterIssue, IssueList } from './styles';
+import { Loading, Owner, FilterIssue, IssueList, Pagination } from './styles';
 
 export default class Repository extends Component {
   static propTypes = {
@@ -20,6 +20,7 @@ export default class Repository extends Component {
     issues: [],
     filterIssue: 'open',
     loading: true,
+    actualPage: 1,
   };
 
   async componentDidMount() {
@@ -51,16 +52,49 @@ export default class Repository extends Component {
     const repoName = decodeURIComponent(match.params.repository);
 
     if (prevState.filterIssue !== filterIssue) {
-      await api.get(`/repos/${repoName}/issues`, {
+      const issues = await api.get(`/repos/${repoName}/issues`, {
         params: {
           state: filterIssue,
-          per_page: 5,
+          per_page: 5
         },
       });
+
+      this.setState({ issues: issues.data });
     }
   }
 
   handleSelectChange = e => this.setState({ filterIssue: e.target.value });
+
+  async getIssuesPage(newPage) {
+    const { match } = this.props;
+    const repoName = decodeURIComponent(match.params.repository);
+    const { filterIssue } = this.state;
+
+    const issues = await api.get(`/repos/${repoName}/issues`, {
+      params: {
+        state: filterIssue,
+        per_page: 5,
+        page: newPage,
+      },
+    });
+    this.setState({ issues: issues.data, actualPage: newPage });
+  }
+
+  async handlePrevPageClick() {
+    const { actualPage } = this.state;
+
+    const newPage = actualPage-1 < 1 ? 1 : actualPage-1;
+
+    this.getIssuesPage(newPage);
+  }
+
+  async handleNextPageClick() {
+    const { actualPage } = this.state;
+
+    const newPage = actualPage+1;
+    
+    this.getIssuesPage(newPage);
+  }
 
   render() {
     const { repository, issues, loading } = this.state;
@@ -84,6 +118,11 @@ export default class Repository extends Component {
           <option value="open" selected>Open</option>
           <option value="closed">Closed</option>
         </FilterIssue>
+
+        <Pagination>
+            <button type="button" onClick={() => this.handlePrevPageClick()}>Anterior</button>
+            <button type="button" onClick={() => this.handleNextPageClick()}>Próximo</button>
+        </Pagination>
 
         <IssueList>
           {issues.map(issue => (
