@@ -81,7 +81,7 @@ export default class Repository extends Component {
         <span>Issue situation:</span>
         <FilterIssue onChange={this.handleSelectChange}>
           <option value="all">All</option>
-          <option value="open">Open</option>
+          <option value="open" selected>Open</option>
           <option value="closed">Closed</option>
         </FilterIssue>
 
